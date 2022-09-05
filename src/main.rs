@@ -7,7 +7,7 @@ use winapi::um::winuser::{SystemParametersInfoW, SPI_GETDESKWALLPAPER};
 fn main() {
     let wallpaper_path = get_current().unwrap();
     println!("{}",wallpaper_path);
-    print!("end")
+    print!("end...")
 }
 
 fn get_current() ->Result<String,Box<dyn std::error::Error>>{
