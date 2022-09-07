@@ -23,7 +23,16 @@ struct Config{
 impl Config{
     fn build(mut args:impl Iterator<Item = String>) -> Result<Config,&'static str>{
         args.next();
-        Ok(Config{file_path:String::from(""),url:String::from("")})
+        let path = match args.next() {
+            Some(arg) => arg,
+            None => return Err("the file path is not specified"),
+        };
+        args.next();
+        let url = match args.next() {
+            Some(arg) => arg,
+            None => return Err("the image url is not specified"),
+        };
+        Ok(Config{file_path:path,url:url})
     }
 }
 
