@@ -1,7 +1,6 @@
 use std::ffi::OsStr;
 use std::{io, iter};
 use std::os::windows::prelude::OsStrExt;
-use std::ptr;
 use winapi::ctypes::c_void;
 
 use winapi::um::winuser::{SystemParametersInfoW, SPI_GETDESKWALLPAPER,SPIF_SENDCHANGE,SPIF_UPDATEINIFILE,SPI_SETDESKWALLPAPER};
@@ -9,7 +8,23 @@ use winapi::um::winuser::{SystemParametersInfoW, SPI_GETDESKWALLPAPER,SPIF_SENDC
 const MAX_WINDOWS_PATH:usize = 260;
 
 fn main() {
-    let wallpaper_path = set_by_path("C:\\Users\\Loken\\Desktop\\материалы\\wallp\\test.jpg").unwrap();
+    let url = "https://cdna.artstation.com/p/assets/images/images/053/497/996/large/muhammet-feyyaz-plaguemarine.jpg?1662370257";
+    let file_name = "download.jpg";
+    if let Err(err) = download_image(file_name,url){
+        println!("{:?}",err)
+    }
+}
+
+struct Config{
+    file_path:String,
+    url:String,
+}
+
+impl Config{
+    fn build(mut args:impl Iterator<Item = String>) -> Result<Config,&'static str>{
+        args.next();
+        Ok(Config{file_path:String::from(""),url:String::from("")})
+    }
 }
 
 fn get_current() ->Result<String,Box<dyn std::error::Error>>{
@@ -34,7 +49,7 @@ fn get_current() ->Result<String,Box<dyn std::error::Error>>{
     }
 }
 
-fn set_by_path(path:&str) ->Result<(),Box<dyn std::error::Error>>{
+fn set_path(path:&str) ->Result<(),Box<dyn std::error::Error>>{
     unsafe{
         let path = OsStr::new(path).encode_wide().chain(iter::once(0)).collect::<Vec<u16>>();
         let successful = SystemParametersInfoW(
@@ -50,4 +65,11 @@ fn set_by_path(path:&str) ->Result<(),Box<dyn std::error::Error>>{
         }
     }
     
+}
+
+fn download_image(file_name:&str,url:&str) -> Result<(),Box<dyn std::error::Error>>{
+    let mut file = std::fs::File::create(file_name)?;
+    reqwest::blocking::get(url)?.copy_to(&mut file)?;
+    Ok(())
+
 }
