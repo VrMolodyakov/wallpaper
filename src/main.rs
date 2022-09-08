@@ -1,18 +1,38 @@
 use std::ffi::OsStr;
-use std::{io, iter};
+use std::{io, iter, env, process};
 use std::os::windows::prelude::OsStrExt;
 use winapi::ctypes::c_void;
+use rand::distributions::{Alphanumeric, DistString};
 
 use winapi::um::winuser::{SystemParametersInfoW, SPI_GETDESKWALLPAPER,SPIF_SENDCHANGE,SPIF_UPDATEINIFILE,SPI_SETDESKWALLPAPER};
 
 const MAX_WINDOWS_PATH:usize = 260;
 
 fn main() {
-    let url = "https://cdna.artstation.com/p/assets/images/images/053/497/996/large/muhammet-feyyaz-plaguemarine.jpg?1662370257";
-    let file_name = "download.jpg";
-    if let Err(err) = download_image(file_name,url){
-        println!("{:?}",err)
+    // let url = "https://cdna.artstation.com/p/assets/images/images/053/497/996/large/muhammet-feyyaz-plaguemarine.jpg?1662370257";
+    // let file_name = "download.jpg";
+    // if let Err(err) = download_image(file_name,url){
+    //     println!("{:?}",err)
+    // }
+    let config = Config::build(env::args()).unwrap_or_else(|err| {
+        eprintln!("Problem parsing arguments: {err}");
+        process::exit(1);
+    });
+    let image_name = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
+    let image_path  = format!("{}{}{}", &config.file_path.to_string(),image_name,".jpg");
+
+    if let Err(err) = download_image(&image_path, &config.url){
+        eprintln!("Couldn't download image: {err}");
+        process::exit(1);
     }
+
+    if let Err(err) = set_image(&config.file_path){
+        eprintln!("Couldn't set new image: {err}");
+        process::exit(1);
+    }
+    process::exit(0);
+   
+
 }
 
 struct Config{
@@ -21,13 +41,12 @@ struct Config{
 }
 
 impl Config{
-    fn build(mut args:impl Iterator<Item = String>) -> Result<Config,&'static str>{
+    fn build(mut args:impl Iterator<Item = String>) -> Result<Config, &'static str>{
         args.next();
         let path = match args.next() {
             Some(arg) => arg,
             None => return Err("the file path is not specified"),
         };
-        args.next();
         let url = match args.next() {
             Some(arg) => arg,
             None => return Err("the image url is not specified"),
@@ -58,7 +77,7 @@ fn get_current() ->Result<String,Box<dyn std::error::Error>>{
     }
 }
 
-fn set_path(path:&str) ->Result<(),Box<dyn std::error::Error>>{
+fn set_image(path:&str) ->Result<(),Box<dyn std::error::Error>>{
     unsafe{
         let path = OsStr::new(path).encode_wide().chain(iter::once(0)).collect::<Vec<u16>>();
         let successful = SystemParametersInfoW(
