@@ -14,19 +14,20 @@ fn main() {
     // if let Err(err) = download_image(file_name,url){
     //     println!("{:?}",err)
     // }
+
     let config = Config::build(env::args()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
     let image_name = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
-    let image_path  = format!("{}{}{}", &config.file_path.to_string(),image_name,".jpg");
+    let image_path  = format!("{}{}{}{}", &config.file_path.to_string(),"/",image_name,".jpg");
 
     if let Err(err) = download_image(&image_path, &config.url){
         eprintln!("Couldn't download image: {err}");
         process::exit(1);
     }
 
-    if let Err(err) = set_image(&config.file_path){
+    if let Err(err) = set_image(&image_path){
         eprintln!("Couldn't set new image: {err}");
         process::exit(1);
     }
@@ -34,6 +35,8 @@ fn main() {
    
 
 }
+
+
 
 struct Config{
     file_path:String,
@@ -96,6 +99,7 @@ fn set_image(path:&str) ->Result<(),Box<dyn std::error::Error>>{
 }
 
 fn download_image(file_name:&str,url:&str) -> Result<(),Box<dyn std::error::Error>>{
+    println!("{}",file_name);
     let mut file = std::fs::File::create(file_name)?;
     reqwest::blocking::get(url)?.copy_to(&mut file)?;
     Ok(())
