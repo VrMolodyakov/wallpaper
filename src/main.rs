@@ -9,12 +9,6 @@ use winapi::um::winuser::{SystemParametersInfoW, SPI_GETDESKWALLPAPER,SPIF_SENDC
 const MAX_WINDOWS_PATH:usize = 260;
 
 fn main() {
-    // let url = "https://cdna.artstation.com/p/assets/images/images/053/497/996/large/muhammet-feyyaz-plaguemarine.jpg?1662370257";
-    // let file_name = "download.jpg";
-    // if let Err(err) = download_image(file_name,url){
-    //     println!("{:?}",err)
-    // }
-
     let config = Config::build(env::args()).unwrap_or_else(|err| {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
